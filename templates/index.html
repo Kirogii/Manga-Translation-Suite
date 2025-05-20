@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Manga Translator</title>
+		<link rel="stylesheet" href="/static/styles.css" />
+	</head>
+	<body>
+		<header>
+			<div class="header-content">
+				<h1>Manga Translator</h1>
+				<p>
+					Translate your manga panels from <b>Japanese</b> to <b>English</b>!
+				</p>
+				<p>
+					Make sure the image is clear, black and white, and has text in
+					Japanese.
+				</p>
+				<a
+					href="https://github.com/Detopall/manga-translator"
+					target="_blank"
+					class="github-link"
+					>View on GitHub</a
+				>
+			</div>
+		</header>
+		<div class="container">
+			<div class="actions">
+				<input type="file" id="fileInput" accept="image/*" />
+				<button id="translateButton" onclick="predict()">Translate</button>
+				<button id="downloadButton" style="display: none">
+					<a id="downloadLink" href="#" download>Download Translated Image</a>
+				</button>
+			</div>
+			<div id="spinner" class="spinner" style="display: none"></div>
+			<div class="images-container">
+				<div class="image-wrapper">
+					<h3>Original Image</h3>
+					<img id="inputImage" style="max-width: 100%" />
+				</div>
+				<div class="image-wrapper">
+					<h3>Translated Image</h3>
+					<img
+						id="outputImage"
+						alt="Translated Manga"
+						style="max-width: 100%; display: none"
+					/>
+				</div>
+			</div>
+		</div>
+		<script src="/static/index.js"></script>
+	</body>
+</html>
