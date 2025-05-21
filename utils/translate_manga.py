@@ -37,10 +37,14 @@ def translate_manga(text: str, source_lang: str = "ja", target_lang: str = "en")
     
     inputs = tokenizer(text, return_tensors="pt", truncation=True).to(DEVICE)
     with torch.no_grad():
-        translated = model.generate(**inputs)
+        translated = model.generate(
+            **inputs,
+            max_length=128,
+            num_beams=5,
+            early_stopping=True,
+            no_repeat_ngram_size=2
+        )
     translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
-
-
 
     print("Translated text:", translated_text)
 
