@@ -2,7 +2,7 @@
 Based on the sourcecode from https://github.com/Detopall/manga-translator/tree/main
 - [Installation](#installation)
 - [Information](#information)
-- IMPORTANT NOTE: When translating dont scroll down until its finished theres a indicator on the top right corner it disappears after its done
+- IMPORTANT NOTE: When translating dont scroll down and stay at the top of the page until its finished theres a indicator on the top right corner it disappears after its done
 _________________________________________________________________________________________________________________________________________________________
 _________________________________________________________________________________________________________________________________________________________
 _________________________________________________________________________________________________________________________________________________________
