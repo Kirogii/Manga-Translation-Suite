@@ -2,6 +2,7 @@
 Based on the sourcecode from https://github.com/Detopall/manga-translator/tree/main
 - [Installation](#installation)
 - [Information](#information)
+- IMPORTANT NOTE: When translating dont scroll down until its finished theres a indicator on the top right corner it disappears after its done
 _________________________________________________________________________________________________________________________________________________________
 _________________________________________________________________________________________________________________________________________________________
 _________________________________________________________________________________________________________________________________________________________
@@ -38,4 +39,4 @@ How to change models (You might need to edit code for some models that dont use 
 
 - 1: Goto Utils Folders>translate_manga.py
 - 2: Edit line 25 [model_name = "Helsinki-NLP/opus-mt-ja-en"] and change [*"Helsinki-NLP/opus-mt-ja-en"*] to any huggingface model identifier
-- 3: Done
+- 3: Save then you are Done :)
