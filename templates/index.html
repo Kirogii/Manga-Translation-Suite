@@ -1,54 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Manga Translator</title>
-		<link rel="stylesheet" href="/static/styles.css" />
-	</head>
-	<body>
-		<header>
-			<div class="header-content">
-				<h1>Manga Translator</h1>
-				<p>
-					Translate your manga panels from <b>Japanese</b> to <b>English</b>!
-				</p>
-				<p>
-					Make sure the image is clear, black and white, and has text in
-					Japanese.
-				</p>
-				<a
-					href="https://github.com/Detopall/manga-translator"
-					target="_blank"
-					class="github-link"
-					>View on GitHub</a
-				>
-			</div>
-		</header>
-		<div class="container">
-			<div class="actions">
-				<input type="file" id="fileInput" accept="image/*" />
-				<button id="translateButton" onclick="predict()">Translate</button>
-				<button id="downloadButton" style="display: none">
-					<a id="downloadLink" href="#" download>Download Translated Image</a>
-				</button>
-			</div>
-			<div id="spinner" class="spinner" style="display: none"></div>
-			<div class="images-container">
-				<div class="image-wrapper">
-					<h3>Original Image</h3>
-					<img id="inputImage" style="max-width: 100%" />
-				</div>
-				<div class="image-wrapper">
-					<h3>Translated Image</h3>
-					<img
-						id="outputImage"
-						alt="Translated Manga"
-						style="max-width: 100%; display: none"
-					/>
-				</div>
-			</div>
-		</div>
-		<script src="/static/index.js"></script>
-	</body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manga Translator Interface</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9fb;
+      color: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: white;
+      border-bottom: 1px solid #e3e3e3;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    header p {
+      margin: 0.5rem 0;
+      color: #555;
+    }
+
+    .main {
+      flex: 1;
+      padding: 3rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 600px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+      text-align: center;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.75rem;
+    }
+
+    .card p {
+      margin: 1rem 0;
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.2rem;
+      background: #000;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .github-link:hover {
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Manga Translator</h1>
+    <p>AI-powered intermediary for translating Japanese manga panels into English</p>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Ready to Translate</h2>
+      <p>This page serves as a bridge between your browser and the AI translation service.</p>
+      <p>To begin, go to any manga website and click the <strong>Manga Translator</strong> extension in your browser toolbar.</p>
+      <a
+        href="https://github.com/Kirogii/Manga-Translation-Suite"
+        target="_blank"
+        class="github-link"
+      >View on GitHub</a>
+    </div>
+  </main>
+
+  <div class="footer">
+    2025 Manga Translator • Powered by Open Source & AI
+  </div>
+</body>
 </html>
