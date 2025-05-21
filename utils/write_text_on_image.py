@@ -19,7 +19,7 @@ def add_text(image: np.ndarray, text: str, contour: np.ndarray):
 	x, y, w, h = cv2.boundingRect(contour)
 
 	line_height = 16
-	font_size = 14
+	font_size = 18
 	wrapping_ratio = 0.075
 
 	wrapped_text = textwrap.fill(text, width=int(w * wrapping_ratio),
