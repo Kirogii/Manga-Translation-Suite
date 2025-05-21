@@ -22,7 +22,7 @@ def translate_manga(text: str, source_lang: str = "ja", target_lang: str = "en")
     if source_lang == target_lang:
         return text
 
-    model_name = "Helsinki-NLP/opus-mt-ja-en"
+    model_name = "cyy0/JaptoEnBetterMTL-2"
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
