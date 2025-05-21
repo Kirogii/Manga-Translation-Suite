@@ -39,10 +39,12 @@ def translate_manga(text: str, source_lang: str = "ja", target_lang: str = "en")
     with torch.no_grad():
         translated = model.generate(
             **inputs,
-            max_length=128,
-            num_beams=5,
+            max_length=256,                # Increase from 128 → 256 (better for long sentences)
+            num_beams=8,                   # Increase from 5 → 8 (better beam search = better quality)
             early_stopping=True,
-            no_repeat_ngram_size=2
+             no_repeat_ngram_size=3,       # Increase to 3 to reduce repetition
+            length_penalty=1.2,           # Encourage longer, fuller translations
+            repetition_penalty=2.5        # Stronger penalty against repeated phrases
         )
     translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
 
