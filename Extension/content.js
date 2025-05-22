@@ -69,7 +69,7 @@ async function processImage(img, currentIndex, totalCount, progressTextElem) {
 
 (async () => {
   // Scroll to top before starting OCR
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   const images = Array.from(document.images).filter(img =>
     img.naturalWidth > 300 && img.naturalHeight > 300 && img.src.startsWith('http')
