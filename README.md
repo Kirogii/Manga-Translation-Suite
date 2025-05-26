@@ -157,10 +157,8 @@ Goto android_server.js edit it in notepad++/notepad (a code editing program)
 * Goto line 8 and edit inside the '' the server ip you will connect to on phone
 * Take important note any connections by ::1 unless you started it you should decline and stop server and change the ip your connecting from
 - After changing line 8 to your own customized ip run android_server.js after app.py says hosting on localhost
-# On your android phone now
-After you installed
-# How to use it
+# How to use it on phone
 * When you launch android_server.js with node you should get a ip type that in the textbox from the main page on the popup then click save endpoint
 * You should now get an popup on your pc server click allow if you trust that its yours/someone you trust with your ip (dont let random people in basically)
 * After allowing it api requests should work from phone
-
+- Now click translate button on your phone and it should send requests to your pc
