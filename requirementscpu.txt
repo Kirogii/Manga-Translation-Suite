@@ -10,3 +10,9 @@ transformers==4.40.0
 sentencepiece==0.2.0
 opencv-python==4.9.0.80
 numpy==1.26.4
+TTS
+pygame
+requests
+mecab-python3
+espeakng
+sacremoses
