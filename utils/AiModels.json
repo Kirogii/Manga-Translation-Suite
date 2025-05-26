@@ -1,0 +1,7 @@
+{
+  "models": [
+    ["cyy0/JaptoEnBetterMTL-2", "2GB"],
+    ["Helsinki-NLP/opus-mt-ja-en", "1.2GB"],
+    ["facebook/m2m100_1.2B", "6-12GB"]
+  ]
+}

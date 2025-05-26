@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=300, initial-scale=1.0">
+  <title>AndroidExt Translate</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Noto Sans JP', Arial, sans-serif;
+      background: #f7fafd;
+      margin: 0;
+      padding: 0 0 16px 0;
+      min-width: 270px;
+      min-height: 180px;
+      color: #222;
+    }
+    .container {
+      padding: 18px 18px 10px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .label {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    input[type="text"] {
+      padding: 7px 10px;
+      border: 1px solid #bcd0e5;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid #4f8cff;
+    }
+    .btn {
+      padding: 9px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #4f8cff, #38e8ff);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+      margin-top: 2px;
+    }
+    .btn:hover {
+      background: linear-gradient(90deg, #38e8ff, #4f8cff);
+    }
+    .desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: -6px;
+      margin-bottom: 2px;
+    }
+    .success {
+      color: #1aaf5d;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    .progress-glow {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(90deg, #4f8cff, #38e8ff);
+      box-shadow: 0 0 12px 2px #38e8ff99;
+      border-radius: 8px;
+      padding: 7px 0;
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #38e8ff99;
+      display: none;
+    }
+    .dropdown {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #bcd0e5;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="label">API Endpoint</div>
+    <input type="text" id="endpoint" placeholder="http://localhost:8000/">
+    <div class="desc">Set your backend API endpoint for translation.</div>
+    <button class="btn" id="setBtn">Save Endpoint</button>
+    <button class="btn" id="translateBtn">Translate Page</button>
+    <div id="status" class="success" style="display:none;"></div>
+    <div id="progress-glow" class="progress-glow"></div>
+    <button id="settingsBtn" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;z-index:1000;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+  <!-- Settings Modal -->
+  <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:24px 18px 18px 18px;border-radius:12px;min-width:220px;width:80vw;max-width:380px;max-height:90vh;box-shadow:0 4px 24px #4f8cff33;position:relative;display:flex;flex-direction:column;overflow-y:auto;">
+      <button id="closeSettings" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:20px;cursor:pointer;color:#4f8cff;">&times;</button>
+      <h2 style="margin-top:0;font-size:1.2em;color:#4f8cff;">Settings</h2>
+      <div style="margin-bottom:12px;">
+        <label for="modelSelect">AI Model:</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="modelSelect" class="dropdown" style="width:100%;margin-top:4px;"></select>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label for="ttsLang">TTS Language:</label>
+        <select id="ttsLang" class="dropdown" style="width:100%;margin-top:4px;">
+          <option value="ja">Japanese</option>
+        </select>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label for="ocrModel">OCR Model:</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="ocrModel" class="dropdown" style="width:100%;margin-top:4px;"></select>
+          <button id="addOcrModelBtn" class="btn" style="padding:4px 10px;font-size:13px;min-width:unset;width:auto;">＋</button>
+        </div>
+        <div class="desc">Choose the OCR model for manga text detection. Only HuggingFace models can be added.<br>
+          <span style="color:#b00;font-size:12px;font-style:italic;">*Changing OCR model causes a download to occur. You don't need to install it again unless you have issues with inference.</span>
+        </div>
+      </div>
+      <button id="saveSettings" class="btn" style="width:100%;margin-top:10px;">Save Settings</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
