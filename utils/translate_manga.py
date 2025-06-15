@@ -31,7 +31,8 @@ def load_ai_models() -> List[List[str]]:
         ["cyy0/JaptoEnBetterMTL-2", "2GB"],
         ["Helsinki-NLP/opus-mt-ja-en", "1.2GB"],
         ["facebook/m2m100_1.2B", "6-12GB"],
-        ["tunib/electra-ko-en-base", "500MB-1GB"]
+        ["Helsinki-NLP/opus-mt-ko-en", "300MB-2GB"],
+        ["facebook/m2m100_418M", "2-4GB"]
     ]
     
     if not os.path.exists(AI_MODELS_PATH):
@@ -134,8 +135,8 @@ def translate_manga(text: str, source_lang: str = "", target_lang: str = "en") -
 
     try:
         # M2M100-style multilingual models
-        if "electra-ko-en-base" in _current_model_name.lower():
-            tokenizer.src_lang = "ko"
+        if "m2m100" in _current_model_name.lower():
+            tokenizer.src_lang = "ja"
             encoded = tokenizer(text, return_tensors="pt").to(_DEVICE)
             with torch.no_grad():
                 output = model.generate(
