@@ -21,6 +21,8 @@ from utils.predict_bounding_boxes import predict_bounding_boxes
 from utils.manga_ocr_utils import get_text_from_image
 from utils.translate_manga import translate_manga
 from utils import translate_manga as tm
+from utils.paddle_ocr_utils import PaddleOCRWrapper
+from utils.paddle_ocr_utils import paddle_ocr
 from TTS.api import TTS
 from TTS.tts.utils.text.tokenizer import TTSTokenizer
 import tempfile
@@ -30,9 +32,10 @@ import psutil
 import torch  # Import torch
 
 # Constants
-MODEL_URL = "https://huggingface.co/deepghs/manga109_yolo/resolve/main/v2023.12.07_x/model.pt?download=true"
+MODEL_URL = "https://huggingface.co/Kirogii/Yolo-Manga_Textbox-Region_Detect/resolve/main/model.pt?download=true"
 MODEL_DIR = "./models"
 MODEL_PATH = os.path.join(MODEL_DIR, "model.pt")
+
 IP_WHITELIST_FILE = "ip_whitelist.json"
 BLOCKED_IPS_FILE = "blocked_ips.json"
 DENY_DURATION = 10  # seconds
@@ -249,10 +252,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/fonts", StaticFiles(directory="fonts"), name="fonts")
-templates = Jinja2Templates(directory="templates")
-
 def decode_base64_image(encoded_image: str) -> Image.Image:
     decoded_bytes = base64.b64decode(encoded_image)
     image = Image.open(io.BytesIO(decoded_bytes))
@@ -304,7 +303,8 @@ def get_tts_instance(lang):
 # OCR model registry
 ocr_models = [
     {"id": "default", "name": "YOLO + manga_ocr", "ram": "2GB", "type": "yolo"},
-    {"id": "hal-utokyo/MangaLMM", "name": "MangaLMM (HuggingFace)", "ram": "10-15GB", "type": "huggingface"}
+    {"id": "hal-utokyo/MangaLMM", "name": "MangaLMM (HuggingFace)", "ram": "10-15GB", "type": "huggingface"},
+    {"id": "paddle", "name": "PaddleOCR (Korean)", "ram": "1-2GB", "type": "paddle"}
 ]
 
 def add_huggingface_ocr_model(model_id, name, ram="10-15GB"):
@@ -324,22 +324,23 @@ def add_ocr_model(request_body: dict = Body(...)):
     add_huggingface_ocr_model(model_id, name, ram)
     return {"status": "ok", "ocr_models": ocr_models}
 
-@app.get("/")
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
 import time
+
+
+
+
 
 @app.post("/predict")
 def predict(request_body: dict = Body(...), _: bool = Depends(check_ip_safety)):
     start_total = time.time()
     try:
+        # Decode image
         start_decode = time.time()
         image = decode_base64_image(request_body["image"])
         np_image = np.array(image)
         print(f"Decode + convert to array: {time.time() - start_decode:.2f}s")
 
+        # Detect text regions with YOLO
         start_detection = time.time()
         results = predict_bounding_boxes(object_detection_model, np_image)
         print(f"Object detection: {time.time() - start_detection:.2f}s")
@@ -351,30 +352,48 @@ def predict(request_body: dict = Body(...), _: bool = Depends(check_ip_safety)):
             pil_crop = Image.fromarray(cropped)
             start_ocr = time.time()
 
-            # Use the selected OCR model
-            if ocr_model_in_use == 'hal-utokyo/MangaLMM':
-                text, error = translate_mangalmm(pil_crop) # Changed function to use the model selected
-                # or text, error = translate_mangalmm(pil_crop)  # if the function returns an error
-                # if error:
-                #     print(f"MangaLMM error: {error}") #handle the error
-            else:
-                text = get_text_from_image(pil_crop) # Default OCR model
+            # Handle different OCR methods
+            if ocr_model_in_use == 'paddle':
+                # Use PaddleOCR's box-specific processing
+                ocr_result = paddle_ocr.get_text_with_boxes(np_image, [box])
+                if ocr_result:  # If we got results for this box
+                    text = ocr_result[0]['text']
+                else:
+                    text = ""
+            elif ocr_model_in_use == 'hal-utokyo/MangaLMM':
+                text, _ = translate_mangalmm(pil_crop)
+            else:  # default manga_ocr
+                text = get_text_from_image(pil_crop, use_paddle=False)
 
             print(f"OCR time: {time.time() - start_ocr:.2f}s")
+            
+            # Translate the text
             start_translate = time.time()
             translation = translate_manga(text)
             print(f"Translation time: {time.time() - start_translate:.2f}s")
+            
             image_info.append({
                 "box": [x1, y1, x2, y2],
                 "text": text,
                 "translation": translation,
                 "original_text": text
             })
+
         print(f"Total request time: {time.time() - start_total:.2f}s")
         return {"status": "ok", "regions": image_info}
     except Exception as e:
         print("Error:", e)
         return JSONResponse(status_code=500, content={"code": 500, "message": str(e)})
+
+
+
+
+
+
+
+
+
+
 
 
 @app.get("/list_ocrmodels")
@@ -385,59 +404,191 @@ def list_ocrmodels():
 def current_ocrmodel():
     return {"current_ocr_model": ocr_model_in_use}
 
+@app.post("/set_ocr_method")
+def set_ocr_method(request_body: dict = Body(...)):
+    method = request_body.get("method", "manga")
+    if method not in ["manga", "paddle"]:
+        return JSONResponse(status_code=400, content={"error": "Invalid method"})
+    
+    from utils.manga_ocr_utils import set_ocr_method
+    set_ocr_method(method)
+    return {"status": "ok", "method": method}
+
+# In app.py, add this endpoint (around line 500 where other OCR endpoints are)
 @app.post("/set_ocr_model")
 def set_ocr_model(request_body: dict = Body(...)):
     global ocr_model_in_use
-    ocr_model_in_use = request_body.get("ocr_model", "default")
-    print(f"OCR model set to: {ocr_model_in_use}")
-    return {"status": "ok", "ocr_model": ocr_model_in_use}
+    model_id = request_body.get("ocr_model")
+    if not model_id:
+        return JSONResponse(status_code=400, content={"error": "Missing ocr_model parameter"})
+    
+    # Validate the model exists
+    if not any(m["id"] == model_id for m in ocr_models):
+        return JSONResponse(status_code=400, content={"error": "Invalid OCR model specified"})
+    
+    ocr_model_in_use = model_id
+    print(f"OCR model changed to: {ocr_model_in_use}")
+    return {"status": "ok", "current_ocr_model": ocr_model_in_use}
+
+@app.get("/available_ocr_methods")
+def get_ocr_methods():
+    return {"methods": ["manga", "paddle"]}
 
 @app.post("/predict_url")
-def predict_url(request_body: dict = Body(...), _: bool = Depends(check_ip_safety)):
+async def predict_url(request_body: dict = Body(...), _: bool = Depends(check_ip_safety)):
     try:
-        image_url = request_body.get("image_url")
-        if not image_url:
-            return JSONResponse(status_code=400, content={"code": 400, "message": "Missing image_url"})
-        headers = {"User-Agent": "Mozilla/5.0", "Referer": image_url}
-        response = requests.get(image_url, headers=headers, timeout=10)
-        response.raise_for_status()
-        image = Image.open(io.BytesIO(response.content)).convert("RGB")
-        np_image = np.array(image)
+        # Validate input
+        if not request_body or not isinstance(request_body, dict):
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Invalid request body"}
+            )
 
-        if ocr_model_in_use == 'hal-utokyo/MangaLMM':
-            result, error = translate_mangalmm(image)
-            if error:
-                return JSONResponse(status_code=500, content={"code": 500, "message": error})
-            h, w = np_image.shape[:2]
-            return {"status": "ok", "regions": [{
-                "box": [0, 0, w, h],
-                "text": result,
-                "original_text": result,
-                "translation": result
-            }]}
+        # Check for both image_url and direct image data
+        image_url = request_body.get("image_url")
+        image_data = request_body.get("image")
+        
+        if not image_url and not image_data:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Missing image_url or image data"}
+            )
+
+        # Process base64 image data if provided
+        if image_data:
+            try:
+                # Ensure the base64 string is clean (remove data URI prefix if present)
+                if image_data.startswith('data:image'):
+                    image_data = image_data.split(',')[1]
+                
+                image_bytes = base64.b64decode(image_data)
+                image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                np_image = np.array(image)
+                print(f"Image loaded from base64 data. Dimensions: {np_image.shape}")
+            except Exception as img_error:
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": f"Invalid image data: {str(img_error)}"}
+                )
         else:
+            # Process image URL if provided
+            print(f"Processing image URL: {image_url}")
+            headers = {
+                "User-Agent": "Mozilla/5.0",
+                "Referer": image_url.split('?')[0] if image_url else ""
+            }
+            
+            try:
+                response = requests.get(image_url, headers=headers, timeout=15)
+                response.raise_for_status()
+                
+                if not response.content:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"status": "error", "message": "Empty image content"}
+                    )
+                    
+                image = Image.open(io.BytesIO(response.content)).convert("RGB")
+                np_image = np.array(image)
+                print(f"Image loaded successfully. Dimensions: {np_image.shape}")
+            except requests.exceptions.RequestException as req_error:
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": f"Failed to download image: {str(req_error)}"}
+                )
+            except Exception as img_error:
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": f"Invalid image format: {str(img_error)}"}
+                )
+
+        # Process with selected OCR method
+        try:
+            start_detection = time.time()
             results = predict_bounding_boxes(object_detection_model, np_image)
+            print(f"Object detection: {time.time() - start_detection:.2f}s")
+
             image_info = []
             for box in results:
                 x1, y1, x2, y2 = map(int, box[:4])
                 cropped = np_image[y1:y2, x1:x2]
                 pil_crop = Image.fromarray(cropped)
-                # Use the selected OCR model
-                if ocr_model_in_use == 'hal-utokyo/MangaLMM':
-                    text, error = translate_mangalmm(pil_crop)
-                else:
-                    text = get_text_from_image(pil_crop)
+                start_ocr = time.time()
 
+                # Handle different OCR methods
+                if ocr_model_in_use == 'paddle':
+                    # Use PaddleOCR for text recognition only (after YOLO detection)
+                    text = paddle_ocr.get_text_from_image(cropped)
+                elif ocr_model_in_use == 'hal-utokyo/MangaLMM':
+                    text, _ = translate_mangalmm(pil_crop)
+                else:  # default manga_ocr
+                    text = get_text_from_image(pil_crop, use_paddle=False)
+
+                print(f"OCR time: {time.time() - start_ocr:.2f}s")
+                
+                # Translate the text
+                start_translate = time.time()
                 translation = translate_manga(text)
+                print(f"Translation time: {time.time() - start_translate:.2f}s")
+                
                 image_info.append({
                     "box": [x1, y1, x2, y2],
                     "text": translation,
                     "translation": translation,
                     "original_text": text
                 })
-            return {"status": "ok", "regions": image_info}
+
+            return {
+                "status": "ok",
+                "regions": image_info,
+                "ocr_model": ocr_model_in_use
+            }
+
+        except Exception as processing_error:
+            print(f"Error during OCR processing: {str(processing_error)}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": f"OCR processing error: {str(processing_error)}",
+                    "ocr_model": ocr_model_in_use
+                }
+            )
+
     except Exception as e:
-        return JSONResponse(status_code=500, content={"code": 500, "message": str(e)})
+        print(f"Unexpected error in predict_url: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"Unexpected server error: {str(e)}",
+                "type": type(e).__name__
+            }
+        )
+
+@app.get("/ocr_model_info")
+def get_ocr_model_info():
+    """Get detailed information about available OCR models"""
+    models_info = []
+    for model in ocr_models:
+        model_info = {
+            "id": model["id"],
+            "name": model["name"],
+            "ram": model["ram"],
+            "type": model["type"],
+            "description": ""
+        }
+        if model["id"] == "paddle":
+            model_info["description"] = "PaddleOCR optimized for Korean text recognition"
+        elif model["id"] == "default":
+            model_info["description"] = "Default manga_ocr for general Japanese/English text"
+        elif model["id"] == "hal-utokyo/MangaLMM":
+            model_info["description"] = "Large multimodal model for manga text recognition"
+        
+        models_info.append(model_info)
+    
+    return {"models": models_info}
+
 
 @app.post("/set_aimodel")
 def set_aimodel(request_body: dict = Body(...)):

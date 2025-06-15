@@ -30,7 +30,8 @@ def load_ai_models() -> List[List[str]]:
     default_models = [
         ["cyy0/JaptoEnBetterMTL-2", "2GB"],
         ["Helsinki-NLP/opus-mt-ja-en", "1.2GB"],
-        ["facebook/m2m100_1.2B", "6-12GB"]
+        ["facebook/m2m100_1.2B", "6-12GB"],
+        ["tunib/electra-ko-en-base", "500MB-1GB"]
     ]
     
     if not os.path.exists(AI_MODELS_PATH):
@@ -117,7 +118,7 @@ def set_current_model(model_name: str) -> bool:
             return False
     _current_model_name = model_name  # <- Ensure update even when cached
 
-def translate_manga(text: str, source_lang: str = "ja", target_lang: str = "en") -> str:
+def translate_manga(text: str, source_lang: str = "", target_lang: str = "en") -> str:
     """Translate manga text from Japanese to English using the current model."""
     if not text or not text.strip():
         return ""
@@ -133,8 +134,8 @@ def translate_manga(text: str, source_lang: str = "ja", target_lang: str = "en")
 
     try:
         # M2M100-style multilingual models
-        if "m2m100" in _current_model_name.lower():
-            tokenizer.src_lang = "ja"
+        if "electra-ko-en-base" in _current_model_name.lower():
+            tokenizer.src_lang = "ko"
             encoded = tokenizer(text, return_tensors="pt").to(_DEVICE)
             with torch.no_grad():
                 output = model.generate(
