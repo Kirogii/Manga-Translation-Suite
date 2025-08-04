@@ -1,3 +1,10 @@
+## READ THIS BEFORE U DOWNLOAD OR DO ANYTHING
+- V3 Is in development
+* v3 will have better image gathering/ocr v2.5 was the testing build that worked best for it but im working on it currently
+* Download a test build 100% works and is easier than this mess to read through
+https://github.com/Kirogii/Manga-Translation-Suite-ALPHA_BUILDS/releases/tag/Testing_Build_V3
+- Just run the AUTOINSTALLER.bat and it will automatically download everything and run the app.py after you finish it you can run app.py afterwards each time you wanna start it
+
 # Manga-Translation-Suite
 Based on the sourcecode from https://github.com/Detopall/manga-translator/tree/main
 - [Installation v1 + v2 (Partial)](#installation)
