@@ -1,3 +1,5 @@
+## THIS IS OBSOLETE I DONT HAVE AS MUCH TIME TO WORK ON IT TRY THIS ALTERNATIV
+# Check this: https://www.reddit.com/r/mangapiracy/comments/1oa33kv/what_i_use_for_translating_on_the_browser/
 ## READ THIS BEFORE U DOWNLOAD OR DO ANYTHING
 - V3 Is in development
 * v3 will have better image gathering/ocr v2.5 was the testing build that worked best for it but im working on it currently
