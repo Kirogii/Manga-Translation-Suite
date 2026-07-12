@@ -1,3 +1,4 @@
+# Check this out it works alot better than this https://github.com/Kirogii/MangaAMTL 
 ## THIS IS OBSOLETE I DONT HAVE AS MUCH TIME TO WORK ON IT TRY THIS ALTERNATIV
 # Check this: https://www.reddit.com/r/mangapiracy/comments/1oa33kv/what_i_use_for_translating_on_the_browser/
 ## READ THIS BEFORE U DOWNLOAD OR DO ANYTHING
